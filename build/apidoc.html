@@ -63,6 +63,15 @@
 
         <li>
 
+            <a class="apidocElementLiA" href="#apidoc.element.gulp-plumber.gulp-plumber">
+            function <span class="apidocSignatureSpan"></span>gulp-plumber
+            <span class="apidocSignatureSpan">(opts)</span>
+            </a>
+
+        </li>
+
+        <li>
+
             <a class="apidocElementLiA" href="#apidoc.element.gulp-plumber.stop">
             function <span class="apidocSignatureSpan">gulp-plumber.</span>stop
             <span class="apidocSignatureSpan">()</span>
@@ -76,6 +85,82 @@
 
 <div class="apidocSectionDiv">
 <h1><a href="#apidoc.module.gulp-plumber" id="apidoc.module.gulp-plumber">module gulp-plumber</a></h1>
+
+
+    <h2>
+        <a href="#apidoc.element.gulp-plumber.gulp-plumber" id="apidoc.element.gulp-plumber.gulp-plumber">
+        function <span class="apidocSignatureSpan"></span>gulp-plumber
+        <span class="apidocSignatureSpan">(opts)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">function plumber(opts) {
+	opts = opts || {};
+
+	if (typeof opts === &#x27;function&#x27;) {
+		opts = {errorHandler: opts};
+	}
+
+	var through = through2.obj();
+	through._plumber = true;
+
+	if (opts.errorHandler !== false) {
+		through.errorHandler = (typeof opts.errorHandler === &#x27;function&#x27;) ?
+			opts.errorHandler :
+			defaultErrorHandler;
+	}
+
+	function patchPipe(stream) {
+		if (stream.pipe2) {
+			wrapPanicOnErrorHandler(stream);
+			stream._pipe = stream._pipe || stream.pipe;
+			stream.pipe = stream.pipe2;
+			stream._plumbed = true;
+		}
+	}
+
+	through.pipe2 = function pipe2(dest) {
+		if (!dest) {
+			throw new gutil.PluginError(&#x27;plumber&#x27;, &#x27;Can\&#x27;t pipe to undefined&#x27;);
+		}
+
+		this._pipe.apply(this, arguments);
+
+		if (dest._unplumbed) {
+			return dest;
+		}
+
+		removeDefaultHandler(this, &#x27;error&#x27;);
+
+		if (dest._plumber) {
+			return dest;
+		}
+
+		dest.pipe2 = pipe2;
+
+		// Patching pipe method
+		if (opts.inherit !== false) {
+			patchPipe(dest);
+		}
+
+		// Placing custom on error handler
+		if (this.errorHandler) {
+			dest.errorHandler = this.errorHandler;
+			dest.on(&#x27;error&#x27;, this.errorHandler.bind(dest));
+		}
+
+		dest._plumbed = true;
+
+		return dest;
+	};
+
+	patchPipe(through);
+
+	return through;
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    </ul>
+
 
 
     <h2>
